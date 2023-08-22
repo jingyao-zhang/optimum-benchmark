@@ -1,0 +1,24 @@
+defaults:
+  - base_config # inherits from base config
+  - _self_ # for hydra 1.1 compatibility
+
+experiment_name: pytorch_inference_cuda_gpt_1.3B_fp16_qint8
+
+model: cerebras/Cerebras-GPT-1.3B
+device: cuda
+
+benchmark:
+  profile: true
+
+backend:
+  device_map: auto
+  initial_isolation_check: false
+  continous_isolation_check: false
+  torch_dtype: float16
+  load_in_8bit: true
+  # load_in_4bit: true
+
+# hydra:
+#   sweeper:
+#     params:
+#       backend.bettertransformer: false,true
