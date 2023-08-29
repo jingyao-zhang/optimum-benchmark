@@ -20,6 +20,7 @@ from optimum.bettertransformer import BetterTransformer
 from optimum_benchmark.backends.base import Backend, BackendConfig
 from optimum_benchmark.profilers.fx_profiler import FXProfilingWrapper
 
+from torch.profiler import profile, record_function, ProfilerActivity
 
 # bachend logger
 LOGGER = getLogger("pytorch")
@@ -262,6 +263,16 @@ class PyTorchBackend(Backend):
             dtype=self.amp_dtype,
             enabled=self.amp_autocast,
         ):
+            
+            
+            with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], with_modules=True, with_flops=True) as prof:
+                with record_function("model_inference"):
+                    self.pretrained_model(**input, **kwargs)
+            print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=20))
+            # print(prof.key_averages().table())
+            exit()
+            
+            
             output = self.pretrained_model(**input, **kwargs)
 
         return output
