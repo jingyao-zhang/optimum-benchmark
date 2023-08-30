@@ -330,6 +330,10 @@ class MatMul8bitLt(torch.autograd.Function):
             warnings.warn(f"MatMul8bitLt: inputs will be cast from {A.dtype} to float16 during quantization")
 
         # 1. Quantize A
+        # print(A)
+        # print(A.shape)
+        # print(len(A.shape))
+        # print("state.threshold:{}".format(state.threshold))
         if len(A.shape) == 3:
             A = A.view(-1, A.shape[-1]).contiguous()
         CA, CAt, SCA, SCAt, coo_tensorA = F.double_quant(A.to(torch.float16), threshold=state.threshold)
@@ -352,7 +356,18 @@ class MatMul8bitLt(torch.autograd.Function):
                 state.CxB, state.SB = F.transform(state.CB, to_order=formatB)
             subA = None
 
+#
+#
+#
+        end_time = time.time()
+        start_time5 = time.time()
+#
+#
+#     
+
         # 2. Quantize B
+        # print("B:{}".format(B))
+        # print("state.has_fp16_weights:{}".format(state.has_fp16_weights))
         if state.has_fp16_weights:
             has_grad = True if (getattr(B, "grad", None) is not None) else False
             is_transposed = not B.is_contiguous() and B.shape[0] == B.stride(1)
@@ -406,8 +421,9 @@ class MatMul8bitLt(torch.autograd.Function):
 #
 #
 #
-        end_time = time.time()
-        quantization_time = end_time - start_time
+        end_time5 = time.time()
+        quantA_time = end_time - start_time
+        quantB_time = end_time5 - start_time5
         # total_quantization_time += (end_time - start_time)
         # print("elapsed_time:{0}".format(end_time - start_time) + "[sec]")
         
@@ -476,11 +492,13 @@ class MatMul8bitLt(torch.autograd.Function):
         end_time4 = time.time()
         save_time = end_time4 - start_time4
         
-        total_time = quantization_time + mm_time + dequantization_time + save_time
-        print("quantization percent:{:.2f}%".format(quantization_time / total_time * 100))
-        print("mm percent:{:.2f}%".format(mm_time / total_time * 100))
-        print("dequantization percent:{:.2f}%".format(dequantization_time / total_time * 100))
-        print("save percent:{:.2f}%".format(save_time / total_time * 100))
+        total_time = quantA_time + quantB_time + mm_time + dequantization_time + save_time
+        print("quantA_time percent:{:.2f}%, exact time:{:.2f}us".format(quantA_time / total_time * 100, quantA_time*1000000))
+        print("quantB_time percent:{:.2f}%, exact time:{:.2f}us".format(quantB_time / total_time * 100, quantB_time*1000000))
+        print("mm_time percent:{:.2f}%, exact time:{:.2f}us".format(mm_time / total_time * 100, mm_time*1000000))
+        print("dequantization_time percent:{:.2f}%, exact time:{:.2f}us".format(dequantization_time / total_time * 100, dequantization_time*1000000))
+        print("save_time percent:{:.2f}%, exact time:{:.2f}us".format(save_time / total_time * 100, save_time*1000000))
+        # exit()
         
         return clone_func(output.view(output_shape))
 

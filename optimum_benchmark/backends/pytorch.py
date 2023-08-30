@@ -265,12 +265,12 @@ class PyTorchBackend(Backend):
         ):
             
             
-            with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], with_modules=True, with_flops=True) as prof:
-                with record_function("model_inference"):
-                    self.pretrained_model(**input, **kwargs)
-            print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=20))
-            # print(prof.key_averages().table())
-            exit()
+            # with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], with_modules=True, with_flops=True) as prof:
+            #     with record_function("model_inference"):
+            #         self.pretrained_model(**input, **kwargs)
+            # print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=20))
+            # # print(prof.key_averages().table())
+            # exit()
             
             
             output = self.pretrained_model(**input, **kwargs)
